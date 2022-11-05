@@ -34,6 +34,24 @@ They points to specific memory locations by storing the offset relative to a spe
 - DI: destinaton index. Used to store the offset address of data, usually as a destination in some string-related operations. The offset is relative to the data or extra segment.
 - IP: instruction pointer. Used to store the offset of the next instruction that is to be executed. The offset is relative to the code segment.
 
+### Flags register
+
+The 8086 microprocessor has a 16 bit register to store flags. Only 9 bits are used.
+
+- S: sign. Negative numbers are stored using the 2's complement. I.e., take the positive number, add a 0 in front, complement it, add 1. E.g., -4 becomes 100 -> 0100 -> 1011 -> 1100. In this way, the most significative bit is always 1 for negative numbers and 0 for positive numbers. Moreover, in a 4 bit system, 1111 is the lowest negative number (-1), 1110 is second lowest (-2) and so on.After any operation, if the MSB of the result is 1, it indicates the number is negative and the sign flag becomes set. If the MSB is 0, it indicates the number is positive and the sign flag becomes reset.
+- Z: zero. After any arithmetical or logical operation if the result is 0, the zero flag becomes set, otherwise it becomes reset.
+- AC: auxiliary carry. This is set if after any arithmetic or logical operation a carry is passed over from bit 3 to bit 4. Example when summing 0x2B and 0x39.
+- P: parity. If after any arithmetic or logical operation the result has even parity, an even number of 1 bit, the parity register becomes set, otherwise it becomes reset.
+- CY: carry. It indicates the result isn't mathematically correct when interpreted as unsigned. For example 1111 + 0001 = 0000, which means 15 + 1 = 0, which is not correct. More specifically, the carry flag is set if the addition of two numbers causes a carry out of the most significant (leftmost) bits added. For example, 1111 + 0001 = 0000 (carry flag is turned on). The carry (borrow) flag is also set if the subtraction of two numbers requires a borrow into the most significant (leftmost) bits subtracted. For example, 0000 - 0001 = 1111 (carry flag is turned on). Otherwise, the carry flag is turned off.
+- O: overflow. It indicates the result isn't mathematically correct when interpreted as signed. If the sum of two numbers with the sign bits off yields a result number with the sign bit on, the overflow flag is turned on. For example, 0100 + 0100 = 1000 (overflow flag is turned on). If the sum of two numbers with the sign bits on yields a result number with the sign bit off, the overflow flag is turned on. For example, 1000 + 1000 = 0000 (overflow flag is turned on). In all other cases, the flag is turned off. Notice that a negative and positive added together cannot be wrong, because the sum is between the addends. Since both of the addends fit within the allowable range of numbers, and their sum is between them, it must fit as well.
+  For example,
+  - 1111 + 0001 = 0000 should set carry (15 + 1 = 0 is false) and clear overflow (-1 + 1 = 0 is true).
+  - 0111 + 0010 = 1001 should clear carry (7 + 2 = 9 is true) and set overflow (7 + 2 = -7 is false).
+  - 1001 + 1001 = 0010 should set both (9 + 9 = 2 and -7 + -7 = 2 are both false).
+- D: directional. It determines whether string operations will auto-increment or auto-decrement the contents of Index registers. If the Direction status is 1,then the SI and DI Index registers' contents will be decremented; that is to say, strings will be accessed from the highest memory address down to the lowest memory address. Otherwise, the SI and DI Index registers' contents will be incremented; that is to say, strings will be accessed beginning with the lowest memory address.
+- I: interrupt. It is a master interrupt enable/disable. This status must be 1 in order to enable interrupts within the 8086. If this status is 0, then all interrupts will be disabled.
+- T: trap. It is used to put the microprocessor into a debug mode.
+
 ## Memory
 
 The microprocessor 8086 has a 20 address lines, meaning that it has 20 bits to address memory. Each bit is used to identify one byte of memory, meaning that the processor is able to address $2^{20}$ bytes or 1 MB memory.
@@ -135,7 +153,3 @@ For example, 00000001 11001110:
 - Rm is 110, i.e. SI.
 
 Therefore, 00000001 11001110 -> ADD SI, CX.
-
-## Flags
-
-- Flags> https://www.geeksforgeeks.org/flag-register-8086-microprocessor/
