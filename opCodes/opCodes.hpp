@@ -13,12 +13,17 @@ private:
     Registers &registers;
     Flags &flags;
 
+    void AAA();
+
 public:
     OpCodes(Registers &registers, Flags &flags) : registers(registers), flags(flags) {}
     void executeOperation(uint8_t opCode)
     {
         switch (opCode)
         {
+        case 0x37:
+            AAA();
+            break;
         }
     }
 };
