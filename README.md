@@ -65,8 +65,8 @@ The instruction format for 8086 can vary from 1 byte to 6 bytes. The general for
 - 8 bits: prefix.
 - 8 bits: operation code (OpCode). It defines the type of operation, e.g. 100010 corresponds to MOV.
 - 2 bits: word (W). How many bytes are transferred: W=0 only one byte, W=1 a whole word (16 bit).
-- 8 bits: Mod/Rm. How memorz is accessed and which registers are used.
-- 16 bits: displacement. If the displacement is of 8 bits, then only the cell of low order displacement infilled and if the displacement is of 16 bits, then both the cells od low order and high order are filled. The format of the displacement is determined by the Mod/Rm byte (see below).
+- 8 bits: Mod/Rm. How memory is accessed and which registers are used.
+- 16 bits: displacement. If the displacement is of 8 bits, then only the cell of low order displacement is filled and if the displacement is of 16 bits, then both the cells of low order and high order are filled. The format of the displacement is determined by the Mod/Rm byte (see below).
 
 ### OpCode
 
