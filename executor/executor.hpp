@@ -16,6 +16,7 @@ private:
 
     void AAA();
     void AAD(uint8_t param1);
+    void AAM(uint8_t param1);
     void AAS();
 
     uint8_t getInstructionAddress() { return (registers.CS() + registers.IP()); }
@@ -34,6 +35,10 @@ public:
             break;
         case 0xD5:
             AAD(memory[++codeAddress]);
+            registers.IP(registers.IP() + 2);
+            break;
+        case 0xD4:
+            AAM(memory[++codeAddress]);
             registers.IP(registers.IP() + 2);
             break;
         case 0x3F:

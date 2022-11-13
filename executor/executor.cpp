@@ -36,6 +36,25 @@ void Executor::AAD(uint8_t param1)
     registers.AL() == 0 ? flags.set(Flags::Z) : flags.unset(Flags::Z);
 }
 
+void Executor::AAM(uint8_t param1)
+{
+    if (param1 != 0x0A)
+    {
+        cerr << "Operation AAM recognized only with 0x0A as parameter" << endl;
+        exit(1);
+    }
+
+    uint8_t quotient = registers.AL() / 0x0A;
+    uint8_t remainder = registers.AL() % 0x0A;
+
+    registers.AH(quotient);
+    registers.AL(remainder);
+
+    Flags::checkParity(registers.AL()) ? flags.set(Flags::P) : flags.unset(Flags::P);
+    Flags::checkSign(registers.AL()) ? flags.set(Flags::S) : flags.unset(Flags::S);
+    registers.AL() == 0 ? flags.set(Flags::Z) : flags.unset(Flags::Z);
+}
+
 void Executor::AAS()
 {
     uint8_t lowAL = registers.AL() & 0b0000'1111;
