@@ -16,6 +16,7 @@ private:
     const uint8_t *memory;
 
     void AAA();
+    void AAD(uint8_t param1);
 
     uint8_t getInstructionAddress() { return (registers.CS() + registers.IP()); }
 
@@ -30,6 +31,10 @@ public:
         case 0x37:
             AAA();
             registers.IP(registers.IP() + 1);
+            break;
+        case 0xD5:
+            AAD(memory[++codeAddress]);
+            registers.IP(registers.IP() + 2);
             break;
         default:
             cout << "OpCode 0x" << hex << (unsigned int)opCode << dec << " not recognized" << endl;
