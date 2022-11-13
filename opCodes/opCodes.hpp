@@ -1,7 +1,6 @@
 #ifndef OPCODES
 #define OPCODES
 
-#include <unordered_map>
 #include <iostream>
 #include "../registers/registers.hpp"
 #include "../flags/flags.hpp"
