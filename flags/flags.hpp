@@ -1,6 +1,8 @@
 #ifndef FLAGS
 #define FLAGS
 
+#include <cstdint>
+
 class Flags
 {
 private:
@@ -30,6 +32,9 @@ public:
 
     // constructor
     Flags() : flags(0b0) {}
+
+    // helper functions
+    static bool checkParity(uint16_t number);
 };
 
 #endif
