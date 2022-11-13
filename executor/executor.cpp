@@ -35,3 +35,16 @@ void Executor::AAD(uint8_t param1)
     Flags::checkSign(registers.AL()) ? flags.set(Flags::S) : flags.unset(Flags::S);
     registers.AL() == 0 ? flags.set(Flags::Z) : flags.unset(Flags::Z);
 }
+
+void Executor::AAS()
+{
+    uint8_t lowAL = registers.AL() & 0b0000'1111;
+
+    if (lowAL > 0xA || !flags.isSet(Flags::A))
+    {
+        registers.AX(registers.AX() - 0x0106);
+        flags.set(Flags::A);
+    }
+    registers.AL(registers.AL() & uint8_t(0b0000'1111));
+    flags.isSet(Flags::A) ? flags.set(Flags::C) : flags.unset(Flags::C);
+}
