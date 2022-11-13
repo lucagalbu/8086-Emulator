@@ -35,6 +35,8 @@ public:
 
     // helper functions
     static bool checkParity(uint16_t number);
+    static bool checkSign(uint16_t number);
+    static bool checkSign(uint8_t number);
 };
 
 #endif

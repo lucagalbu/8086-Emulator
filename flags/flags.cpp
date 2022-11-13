@@ -12,3 +12,13 @@ bool Flags::checkParity(uint16_t number)
 
     return (numberOnes % 2 == 0 ? true : false);
 }
+
+bool Flags::checkSign(uint16_t number)
+{
+    return (number >> 15 ? true : false);
+}
+
+bool Flags::checkSign(uint8_t number)
+{
+    return (number >> 7 ? true : false);
+}
