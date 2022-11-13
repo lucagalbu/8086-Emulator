@@ -2,6 +2,7 @@
 #define OPCODES
 
 #include <unordered_map>
+#include <iostream>
 #include "../registers/registers.hpp"
 #include "../flags/flags.hpp"
 
@@ -30,6 +31,9 @@ public:
             AAA();
             registers.IP(registers.IP() + 1);
             break;
+        default:
+            cout << "OpCode 0x" << hex << (unsigned int)opCode << dec << " not recognized" << endl;
+            exit(1);
         }
     }
 };
