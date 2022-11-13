@@ -1,5 +1,5 @@
-#ifndef OPCODES
-#define OPCODES
+#ifndef EXECUTOR
+#define EXECUTOR
 
 #include <iostream>
 #include "../registers/registers.hpp"
@@ -7,7 +7,7 @@
 
 using namespace std;
 
-class OpCodes
+class Executor
 {
 private:
     Registers &registers;
@@ -20,7 +20,7 @@ private:
     uint8_t getInstructionAddress() { return (registers.CS() + registers.IP()); }
 
 public:
-    OpCodes(Registers &registers, Flags &flags, const uint8_t *memory) : registers(registers), flags(flags), memory(memory) {}
+    Executor(Registers &registers, Flags &flags, const uint8_t *memory) : registers(registers), flags(flags), memory(memory) {}
     void executeNextOperation()
     {
         uint8_t codeAddress = getInstructionAddress();

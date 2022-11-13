@@ -1,8 +1,8 @@
-#include "opCodes.hpp"
+#include "executor.hpp"
 
 using namespace std;
 
-void OpCodes::AAA()
+void Executor::AAA()
 {
     uint8_t lowAL = registers.AL() & 0b0000'1111;
 
@@ -20,7 +20,7 @@ void OpCodes::AAA()
     registers.AL(registers.AL() & uint8_t(0b0000'1111));
 }
 
-void OpCodes::AAD(uint8_t param1)
+void Executor::AAD(uint8_t param1)
 {
     if (param1 != 0x0A)
     {
