@@ -24,11 +24,11 @@ public:
     };
 
     // getters
-    bool isSet(FlagMasks flag) const { return (flags & flag); }
+    virtual bool isSet(FlagMasks flag) const { return (flags & flag); }
 
     // setters
-    void set(FlagMasks flag) { flags |= flag; }
-    void unset(FlagMasks flag) { flags &= ~flag; }
+    virtual void set(FlagMasks flag) { flags |= flag; }
+    virtual void unset(FlagMasks flag) { flags &= ~flag; }
 
     // constructor
     Flags() : flags(0b0) {}
