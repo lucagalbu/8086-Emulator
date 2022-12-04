@@ -18,6 +18,7 @@ private:
     void AAD(uint8_t param1);
     void AAM(uint8_t param1);
     void AAS();
+    void ADC(uint8_t w, uint8_t param1, uint8_t param2);
 
     uint8_t getInstructionAddress() { return (registers.CS() + registers.IP()); }
 
@@ -44,6 +45,14 @@ public:
         case 0x3F:
             AAS();
             registers.IP(registers.IP() + 1);
+            break;
+        case 0x14:
+            ADC(0, memory[++codeAddress], 0);
+            registers.IP(registers.IP() + 2);
+            break;
+        case 0x15:
+            ADC(1, memory[codeAddress + 1], memory[codeAddress + 2]);
+            registers.IP(registers.IP() + 3);
             break;
         default:
             cout << "OpCode 0x" << hex << (unsigned int)opCode << dec << " not recognized" << endl;
