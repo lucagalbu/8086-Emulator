@@ -90,7 +90,7 @@ The 2-bit mod encodes how many displacement bytes are following the Mod/Rm:
 
 - 00: No displacement bytes.
 - 01: One signed displacement byte.
-- 10: Unsigend 2-bytes displacement.
+- 10: Unsigned 2-bytes displacement.
 - 11: register addressing mode, where the register is specified by r/m. It is used in conjunction with the w bit to determine if an 8- or 16-bit register is selected.
 
 The 3 bits r/m encodes how to access the memory, in conjunction with mod:
@@ -135,7 +135,7 @@ The format must be 001rr110, where
 
 ### Examples
 
-Let's consider the operation whose OpCode is 0000010w. This instruction doesn't expect a mod/rm byte. Depending on w, it's meaning is:
+Let's consider the operation whose OpCode is 0000010w. This instruction doesn't expect a mod/rm byte. Depending on w, its meaning is:
 
 - w=0: add to AL the content of the next 8 bits.
 - w=1: add to AX the content of the next 16 bits.
