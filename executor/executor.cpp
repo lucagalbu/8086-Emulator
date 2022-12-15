@@ -5,7 +5,6 @@ using namespace std;
 void Executor::AAA()
 {
     uint8_t lowAL = registers.AL() & 0b0000'1111;
-
     if (lowAL > 0x9 || flags.isSet(Flags::A))
     {
         registers.AX(registers.AX() + 0x0106);

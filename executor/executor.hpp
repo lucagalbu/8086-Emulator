@@ -12,7 +12,12 @@ class Executor
 private:
     Registers &registers;
     Flags &flags;
+
     const uint8_t *memory;
+    const uint8_t *codeSegment;
+    const uint8_t *dataSegment;
+    const uint8_t *stackSegment;
+    const uint8_t *extraSegment;
 
     void AAA();
     void AAD(uint8_t param1);
@@ -20,14 +25,19 @@ private:
     void AAS();
     void ADC(uint8_t w, uint8_t param1, uint8_t param2);
 
-    uint8_t getInstructionAddress() { return (registers.CS() + registers.IP()); }
-
 public:
-    Executor(Registers &registers, Flags &flags, const uint8_t *memory) : registers(registers), flags(flags), memory(memory) {}
+    Executor(Registers &registers, Flags &flags, const uint8_t *memory, const size_t segment_size_byte) : registers(registers), flags(flags), memory(memory)
+    {
+        codeSegment = &memory[registers.CS() * segment_size_byte];
+        dataSegment = &memory[registers.DS() * segment_size_byte];
+        stackSegment = &memory[registers.SS() * segment_size_byte];
+        extraSegment = &memory[registers.ES() * segment_size_byte];
+    }
+
     void executeNextOperation()
     {
-        uint8_t codeAddress = getInstructionAddress();
-        uint8_t opCode = memory[codeAddress];
+        uint8_t codeOffset = registers.IP();
+        uint8_t opCode = codeSegment[codeOffset];
         switch (opCode)
         {
         case 0x37:
@@ -35,11 +45,11 @@ public:
             registers.IP(registers.IP() + 1);
             break;
         case 0xD5:
-            AAD(memory[++codeAddress]);
+            AAD(memory[++codeOffset]);
             registers.IP(registers.IP() + 2);
             break;
         case 0xD4:
-            AAM(memory[++codeAddress]);
+            AAM(memory[++codeOffset]);
             registers.IP(registers.IP() + 2);
             break;
         case 0x3F:
@@ -47,11 +57,11 @@ public:
             registers.IP(registers.IP() + 1);
             break;
         case 0x14:
-            ADC(0, memory[++codeAddress], 0);
+            ADC(0, memory[++codeOffset], 0);
             registers.IP(registers.IP() + 2);
             break;
         case 0x15:
-            ADC(1, memory[codeAddress + 1], memory[codeAddress + 2]);
+            ADC(1, memory[codeOffset + 1], memory[codeOffset + 2]);
             registers.IP(registers.IP() + 3);
             break;
         default:
