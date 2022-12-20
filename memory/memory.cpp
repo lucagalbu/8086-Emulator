@@ -63,7 +63,7 @@ void Memory::print(uint16_t segment, uint16_t offset, size_t numBytes)
     uint32_t address = makeAddress(segment, offset);
 
     cout << hex;
-    cout << setfill('0') << std::setw(4) << address << "\t";
+    cout << setfill('0') << std::setw(5) << address << "\t";
     for (size_t i = address; i < address + numBytes; i += 2)
     {
         uint16_t value = (memory[i] << 8) + memory[i + 1];
