@@ -2,6 +2,7 @@
 #define EXECUTOR
 
 #include <iostream>
+#include "../memory/memory.hpp"
 #include "../registers/registers.hpp"
 #include "../flags/flags.hpp"
 
@@ -13,39 +14,71 @@ private:
     Registers &registers;
     Flags &flags;
 
-    uint8_t *memory;
-    uint8_t *codeSegment;
-    uint8_t *dataSegment;
-    uint8_t *stackSegment;
-    uint8_t *extraSegment;
+    Memory memory;
 
-    uint32_t getMemAddress(uint8_t rm, uint16_t displacement = 0)
+    struct MemoryAddress
     {
+        uint16_t segment;
+        uint16_t offset;
+    };
+
+    MemoryAddress getMemAddressFromModRm(uint8_t mod, uint8_t rm)
+    {
+        uint16_t displacement = 0;
+        switch (mod)
+        {
+        case 0b00:
+            displacement = 0;
+            break;
+        case 0b01:
+            displacement = memory.readByte(registers.CS(), registers.IP());
+            registers.IP(registers.IP() + 1);
+            break;
+        case 0x10:
+            displacement = memory.readWord(registers.CS(), registers.IP());
+            registers.IP(registers.IP() + 2);
+            break;
+        default:
+            cerr << hex;
+            cerr << "mod=" << (unsigned int)mod << " of modRM not recognized." << endl;
+            cerr << dec;
+            exit(1);
+        }
+
+        MemoryAddress memoryAddress;
         switch (rm)
         {
         case 0b000:
-            return (registers.DS() * 0x10) + registers.BX() + registers.SI() + displacement;
+            memoryAddress.segment = registers.DS();
+            memoryAddress.offset = registers.BX() + registers.SI() + displacement;
             break;
         case 0b001:
-            return (registers.DS() * 0x10) + registers.BX() + registers.DI() + displacement;
+            memoryAddress.segment = registers.DS();
+            memoryAddress.offset = registers.BX() + registers.DI() + displacement;
             break;
         case 0b010:
-            return (registers.SS() * 0x10) + registers.BP() + registers.SI() + displacement;
+            memoryAddress.segment = registers.SS();
+            memoryAddress.offset = registers.BP() + registers.SI() + displacement;
             break;
         case 0b011:
-            return (registers.SS() * 0x10) + registers.BP() + registers.DI() + displacement;
+            memoryAddress.segment = registers.SS();
+            memoryAddress.offset = registers.BP() + registers.DI() + displacement;
             break;
         case 0b100:
-            return (registers.DS() * 0x10) + registers.SI() + displacement;
+            memoryAddress.segment = registers.DS();
+            memoryAddress.offset = registers.SI() + displacement;
             break;
         case 0b101:
-            return (registers.DS() * 0x10) + registers.DI() + displacement;
+            memoryAddress.segment = registers.DS();
+            memoryAddress.offset = registers.DI() + displacement;
             break;
         case 0b110:
-            return (registers.SS() * 0x10) + registers.BP() + displacement;
+            memoryAddress.segment = registers.SS();
+            memoryAddress.offset = registers.BP() + displacement;
             break;
         case 0b111:
-            return (registers.DS() * 0x10) + registers.BX() + registers.SI() + displacement;
+            memoryAddress.segment = registers.DS();
+            memoryAddress.offset = registers.BX() + registers.SI() + displacement;
             break;
         default:
             cerr << hex;
@@ -53,6 +86,8 @@ private:
             cerr << dec;
             exit(1);
         }
+
+        return memoryAddress;
     }
 
     uint8_t getReg8(uint8_t code)
@@ -199,18 +234,11 @@ private:
     void ADC_memreg_data();
 
 public:
-    Executor(Registers &registers, Flags &flags, uint8_t *memory, const size_t segment_size_byte) : registers(registers), flags(flags), memory(memory)
-    {
-        codeSegment = &memory[registers.CS() * segment_size_byte];
-        dataSegment = &memory[registers.DS() * segment_size_byte];
-        stackSegment = &memory[registers.SS() * segment_size_byte];
-        extraSegment = &memory[registers.ES() * segment_size_byte];
-    }
+    Executor(Registers &registers, Flags &flags, Memory memory) : registers(registers), flags(flags), memory(memory) {}
 
     void executeNextOperation()
     {
-        uint8_t codeOffset = registers.IP();
-        uint8_t opCode = codeSegment[codeOffset];
+        uint8_t opCode = memory.readByte(registers.CS(), registers.IP());
         switch (opCode)
         {
         case 0x37:
@@ -218,11 +246,11 @@ public:
             registers.IP(registers.IP() + 1);
             break;
         case 0xD5:
-            AAD(codeSegment[++codeOffset]);
+            AAD(memory.readByte(registers.CS(), registers.IP() + 1));
             registers.IP(registers.IP() + 2);
             break;
         case 0xD4:
-            AAM(codeSegment[++codeOffset]);
+            AAM(memory.readByte(registers.CS(), registers.IP() + 1));
             registers.IP(registers.IP() + 2);
             break;
         case 0x3F:
@@ -230,11 +258,11 @@ public:
             registers.IP(registers.IP() + 1);
             break;
         case 0x14:
-            ADC_ac_data(0, codeSegment[++codeOffset], 0);
+            ADC_ac_data(0, memory.readByte(registers.CS(), registers.IP() + 1), 0);
             registers.IP(registers.IP() + 2);
             break;
         case 0x15:
-            ADC_ac_data(1, codeSegment[codeOffset + 1], codeSegment[codeOffset + 2]);
+            ADC_ac_data(1, memory.readByte(registers.CS(), registers.IP() + 1), memory.readByte(registers.CS(), registers.IP() + 2));
             registers.IP(registers.IP() + 3);
             break;
         case 0x81:
