@@ -97,7 +97,7 @@ The 2-bit mod encodes how many displacement bytes are following the Mod/Rm:
 
 The 3 bits r/m encodes how to access the memory, in conjunction with mod:
 
-| r/m | memory segment | memory offsetc                               |
+| r/m | memory segment | memory offset                                |
 | --- | -------------- | -------------------------------------------- |
 | 000 | data           | BX + SI + displacement                       |
 | 001 | data           | BX + DI + displacement                       |
