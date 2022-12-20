@@ -89,10 +89,10 @@ void Executor::ADC_ac_data(uint8_t w, uint8_t param1, uint8_t param2 = 0)
 
 void Executor::ADC_memreg_data()
 {
-    uint8_t opCode = memory[registers.IP()];
+    uint8_t opCode = memory.readByte(registers.CS(), registers.IP());
     registers.IP(registers.IP() + 1);
 
-    uint8_t modRM = memory[registers.IP()];
+    uint8_t modRM = memory.readByte(registers.CS(), registers.IP());
     registers.IP(registers.IP() + 1);
 
     uint8_t w = opCode & 0b1;
@@ -104,6 +104,8 @@ void Executor::ADC_memreg_data()
 
     uint8_t carry = flags.isSet(Flags::C) ? 1 : 0;
 
+    MemoryAddress memoryAddress = getMemAddressFromModRm(mod, rm);
+
     if (reg != 0b010)
     {
         cerr << "Operation ADC between data and mem/reg requires modRM xx010xxx" << endl;
@@ -112,113 +114,30 @@ void Executor::ADC_memreg_data()
 
     if (w == 0)
     {
-        if (mod == 0b00)
-        {
-            uint32_t memoryAddress = getMemAddress(rm, 0);
-            uint8_t operand = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            memory[memoryAddress] = memory[memoryAddress] + operand + carry;
-        }
-        if (mod == 0b01)
-        {
-            uint8_t displacement = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            uint32_t memoryAddress = getMemAddress(rm, displacement);
-            uint8_t operand = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            memory[memoryAddress] = memory[memoryAddress] + operand + carry;
-        }
-        else if (mod == 0b10)
-        {
-            uint16_t displacement = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 2);
-            uint32_t memoryAddress = getMemAddress(rm, displacement);
-            uint8_t operand = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            memory[memoryAddress] = memory[memoryAddress] + operand + carry;
-        }
-        else if (mod == 0b11)
-        {
-            uint8_t reg_value = getReg8(rm);
-            uint8_t operand = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            setReg8(rm, reg_value + operand + carry);
-        }
+        uint8_t operand = memory.readByte(registers.CS(), registers.IP());
+        registers.IP(registers.IP() + 1);
+        uint8_t memoryVal = memory.readByte(memoryAddress.segment, memoryAddress.offset);
+        uint8_t result = memoryVal + operand + carry;
+        memory.setByte(memoryAddress.segment, memoryAddress.offset, result);
     }
     else if (w == 1)
     {
-        if (mod == 0b00)
+        uint16_t operand;
+        if (s == 0)
         {
-            uint32_t memoryAddress = getMemAddress(rm, 0);
-            uint16_t operand;
-            if (s == 0)
-            {
-                operand = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 2);
-            }
-            else
-            {
-                operand = (((codeSegment[registers.IP()] & 0b1000'0000) * 0b1111'11111) << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 1);
-            }
-
-            uint16_t memoryVal = (memory[memoryAddress + 1] << 8) + memory[memoryAddress];
-            uint16_t result = memoryVal + operand + carry;
-
-            memory[memoryAddress] = result & 0b0000'0000'1111'1111;
-            memory[memoryAddress + 1] = result >> 8;
-        }
-        if (mod == 0b01)
-        {
-            uint8_t displacement = codeSegment[registers.IP()];
-            registers.IP(registers.IP() + 1);
-            uint32_t memoryAddress = getMemAddress(rm, displacement);
-            uint16_t operand;
-            if (s == 0)
-            {
-                operand = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 2);
-            }
-            else
-            {
-                operand = (((codeSegment[registers.IP()] & 0b1000'0000) * 0b1111'11111) << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 1);
-            }
-            memory[memoryAddress] = memory[memoryAddress] + operand + carry;
-        }
-        else if (mod == 0b10)
-        {
-            uint16_t displacement = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
+            operand = memory.readWord(registers.CS(), registers.IP());
             registers.IP(registers.IP() + 2);
-            uint32_t memoryAddress = getMemAddress(rm, displacement);
-            uint16_t operand;
-            if (s == 0)
-            {
-                operand = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 2);
-            }
-            else
-            {
-                operand = (((codeSegment[registers.IP()] & 0b1000'0000) * 0b1111'11111) << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 1);
-            }
-            memory[memoryAddress] = memory[memoryAddress] + operand + carry;
         }
-        else if (mod == 0b11)
+        else
         {
-            uint16_t reg_value = getReg16(rm);
-            uint16_t operand;
-            if (s == 0)
-            {
-                operand = (codeSegment[registers.IP() + 1] << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 2);
-            }
-            else
-            {
-                operand = (((codeSegment[registers.IP()] & 0b1000'0000) * 0b1111'11111) << 8) + codeSegment[registers.IP()];
-                registers.IP(registers.IP() + 1);
-            }
-            setReg16(rm, reg_value + operand + carry);
+            operand = memory.readByte(registers.CS(), registers.IP());
+            operand = (((operand & 0b1000'0000) * 0b1111'11111) << 8) + operand;
+            registers.IP(registers.IP() + 1);
         }
+
+        uint16_t memoryVal = memory.readWord(memoryAddress.segment, memoryAddress.offset);
+        uint16_t result = memoryVal + operand + carry;
+
+        memory.setWord(memoryAddress.segment, memoryAddress.offset, result);
     }
 }
