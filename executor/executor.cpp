@@ -87,13 +87,9 @@ void Executor::ADC_ac_data(uint8_t w, uint8_t param1, uint8_t param2 = 0)
     }
 }
 
-void Executor::ADC_memreg_data()
+void Executor::ADC_memreg_data(uint8_t opCode)
 {
-    uint8_t opCode = memory.readByte(registers.CS(), registers.IP());
-    registers.IP(registers.IP() + 1);
-
-    uint8_t modRM = memory.readByte(registers.CS(), registers.IP());
-    registers.IP(registers.IP() + 1);
+    uint8_t modRM = readByteFromIP();
 
     uint8_t w = opCode & 0b1;
     uint8_t s = (opCode >> 1) & 0b1;
@@ -114,8 +110,7 @@ void Executor::ADC_memreg_data()
 
     if (w == 0)
     {
-        uint8_t operand = memory.readByte(registers.CS(), registers.IP());
-        registers.IP(registers.IP() + 1);
+        uint8_t operand = readByteFromIP();
         uint8_t memoryVal = memory.readByte(memoryAddress.segment, memoryAddress.offset);
         uint8_t result = memoryVal + operand + carry;
         memory.setByte(memoryAddress.segment, memoryAddress.offset, result);
@@ -125,14 +120,12 @@ void Executor::ADC_memreg_data()
         uint16_t operand;
         if (s == 0)
         {
-            operand = memory.readWord(registers.CS(), registers.IP());
-            registers.IP(registers.IP() + 2);
+            operand = readWordFromIP();
         }
         else
         {
-            operand = memory.readByte(registers.CS(), registers.IP());
+            operand = readByteFromIP();
             operand = (((operand & 0b1000'0000) * 0b1111'11111) << 8) + operand;
-            registers.IP(registers.IP() + 1);
         }
 
         uint16_t memoryVal = memory.readWord(memoryAddress.segment, memoryAddress.offset);

@@ -22,6 +22,20 @@ private:
         uint16_t offset;
     };
 
+    uint8_t readByteFromIP()
+    {
+        uint8_t operand = memory.readByte(registers.CS(), registers.IP());
+        registers.IP(registers.IP() + 1);
+        return operand;
+    }
+
+    uint16_t readWordFromIP()
+    {
+        uint16_t operand = memory.readWord(registers.CS(), registers.IP());
+        registers.IP(registers.IP() + 2);
+        return operand;
+    }
+
     MemoryAddress getMemAddressFromModRm(uint8_t mod, uint8_t rm)
     {
         uint16_t displacement = 0;
@@ -231,42 +245,36 @@ private:
     void AAM(uint8_t param1);
     void AAS();
     void ADC_ac_data(uint8_t w, uint8_t param1, uint8_t param2);
-    void ADC_memreg_data();
+    void ADC_memreg_data(uint8_t opCode);
 
 public:
     Executor(Registers &registers, Flags &flags, Memory memory) : registers(registers), flags(flags), memory(memory) {}
 
     void executeNextOperation()
     {
-        uint8_t opCode = memory.readByte(registers.CS(), registers.IP());
+        uint8_t opCode = readByteFromIP();
         switch (opCode)
         {
         case 0x37:
             AAA();
-            registers.IP(registers.IP() + 1);
             break;
         case 0xD5:
-            AAD(memory.readByte(registers.CS(), registers.IP() + 1));
-            registers.IP(registers.IP() + 2);
+            AAD(readByteFromIP());
             break;
         case 0xD4:
-            AAM(memory.readByte(registers.CS(), registers.IP() + 1));
-            registers.IP(registers.IP() + 2);
+            AAM(readByteFromIP());
             break;
         case 0x3F:
             AAS();
-            registers.IP(registers.IP() + 1);
             break;
         case 0x14:
-            ADC_ac_data(0, memory.readByte(registers.CS(), registers.IP() + 1), 0);
-            registers.IP(registers.IP() + 2);
+            ADC_ac_data(0, readByteFromIP(), 0);
             break;
         case 0x15:
-            ADC_ac_data(1, memory.readByte(registers.CS(), registers.IP() + 1), memory.readByte(registers.CS(), registers.IP() + 2));
-            registers.IP(registers.IP() + 3);
+            ADC_ac_data(1, readByteFromIP(), readByteFromIP());
             break;
         case 0x81:
-            ADC_memreg_data();
+            ADC_memreg_data(opCode);
             break;
         default:
             cout << "OpCode 0x" << hex << (unsigned int)opCode << dec << " not recognized" << endl;
