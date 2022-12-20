@@ -58,7 +58,7 @@ The microprocessor 8086 has a 20 address lines, meaning that it has 20 bits to a
 
 Any two consecutive bytes in memory are defined as a word. Each byte in a word has a byte address, and the smaller of these two addresses is used as the address of the word. The byte with the higher memory address contains the eight most significant bits of the words, and the byte with the lower memory address contains the eight least significant bits. On a first reading, this seems very natural. Of course, the most significant byte should have the higher memory address. But then when you consider that memory is a sequence of bytes starting at the lowest address and going towards the highest address, it becomes apparent that the 8086 stores its words backwards.
 
-Since the 8086 can address up to $2^{20}$ bytes of memory, it would seem that, within the 8086 processor, byte and word addresses must be represented as 20-bit quantities. But the 8086 was designed to perform 16-bit arithmetic, and thus the address objects it manipulates can onlz be 16 bits in length. An additional mechanism is therefore required to build addresses. We can conceive of the one megabyte memory as an arbitrary number of segments, each containing at most $2^{16}$ bytes (64 KB). Each segment begins at a byte address that is evenly divisible by 16 (i.e., the four least significant bits of the byte address are 0). At any given moment, the program can immediately access the contents of four such segments. These four segments are called the current code segment, the current data segment, the current stack segment, and the current extra segment. We identify each current segment by placing the 16 most significant bits of the address of its first byte into one of four dedicated registers. These registers are called segment registers. Segments need not be unique and they may overlap. We refer to bytes or words within a segment by using a 16-bit offset address within the $2^{16}$ byte segment.The processor constructs the 20-bit byte or word address by adding the 16-bit offset address to the contents of a 16-bit segment register with four low-order zeros appended.
+Since the 8086 can address up to $2^{20}$ bytes of memory, it would seem that, within the 8086 processor, byte and word addresses must be represented as 20-bit quantities. But the 8086 was designed to perform 16-bit arithmetic, and thus the address objects it manipulates can only be 16 bits in length. An additional mechanism is therefore required to build addresses. We can conceive of the one megabyte memory as an arbitrary number of segments, each containing at most $2^{16}$ bytes (64 KB). Each segment begins at a byte address that is evenly divisible by 16 (i.e., the four least significant bits of the byte address are 0). At any given moment, the program can immediately access the contents of four such segments. These four segments are called the current code segment, the current data segment, the current stack segment, and the current extra segment. We identify each current segment by placing the 16 most significant bits of the address of its first byte into one of four dedicated registers. These registers are called segment registers. Segments need not be unique and they may overlap. We refer to bytes or words within a segment by using a 16-bit offset address within the $2^{16}$ byte segment.The processor constructs the 20-bit byte or word address by adding the 16-bit offset address to the contents of a 16-bit segment register with four low-order zeros appended.
 
 ## Instruction format
 
@@ -97,16 +97,16 @@ The 2-bit mod encodes how many displacement bytes are following the Mod/Rm:
 
 The 3 bits r/m encodes how to access the memory, in conjunction with mod:
 
-| r/m | memory address                               |
-| --- | -------------------------------------------- |
-| 000 | BX + SI + displacement                       |
-| 001 | BX + DI + displacement                       |
-| 010 | BP + SI + displacement                       |
-| 011 | BP + DI + displacement                       |
-| 100 | SI + displacement                            |
-| 101 | DI + displacement                            |
-| 110 | BP + displacement or direct access if mod=00 |
-| 111 | BX + displacement                            |
+| r/m | memory segment | memory offsetc                               |
+| --- | -------------- | -------------------------------------------- |
+| 000 | data           | BX + SI + displacement                       |
+| 001 | data           | BX + DI + displacement                       |
+| 010 | segment        | BP + SI + displacement                       |
+| 011 | segment        | BP + DI + displacement                       |
+| 100 | data           | SI + displacement                            |
+| 101 | data           | DI + displacement                            |
+| 110 | segment        | BP + displacement or direct access if mod=00 |
+| 111 | data           | BX + displacement                            |
 
 direct access means that te offset address is taken directly from the two bytes that follow the addressing mode byte.
 
