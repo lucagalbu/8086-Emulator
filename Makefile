@@ -5,3 +5,4 @@ all:
 
 tests:
 	g++ --std=c++14 -o tests.out tests/executor_test.cpp executor/executor.cpp flags/flags.cpp
+	g++ --std=c++14 -o memory_test.out tests/memory_test.cpp memory/memory.cpp
