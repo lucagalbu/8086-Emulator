@@ -20,8 +20,6 @@ uint16_t Executor::readWordFromIP()
 
 uint16_t Executor::getDisplacementFromMod(uint8_t mod)
 {
-    MemoryAddress address(registers.CS(), registers.IP());
-
     uint16_t displacement = 0;
     switch (mod)
     {
@@ -29,12 +27,10 @@ uint16_t Executor::getDisplacementFromMod(uint8_t mod)
         displacement = 0;
         break;
     case 0b01:
-        displacement = memory.readByte(address);
-        registers.IP(registers.IP() + 1);
+        displacement = readByteFromIP();
         break;
     case 0x10:
-        displacement = memory.readWord(address);
-        registers.IP(registers.IP() + 2);
+        displacement = readWordFromIP();
         break;
     default:
         cerr << hex;
