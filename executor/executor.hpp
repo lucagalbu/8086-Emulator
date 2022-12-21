@@ -36,7 +36,7 @@ private:
         return operand;
     }
 
-    MemoryAddress getMemAddressFromModRm(uint8_t mod, uint8_t rm)
+    uint16_t getDisplacementFromMod(uint8_t mod)
     {
         uint16_t displacement = 0;
         switch (mod)
@@ -54,12 +54,19 @@ private:
             break;
         default:
             cerr << hex;
-            cerr << "mod=" << (unsigned int)mod << " of modRM not recognized." << endl;
+            cerr << "mod=" << (unsigned int)mod << " not recognized as displacement." << endl;
             cerr << dec;
             exit(1);
         }
 
+        return displacement;
+    }
+
+    MemoryAddress getMemAddressFromModRm(uint8_t mod, uint8_t rm)
+    {
+        uint16_t displacement = getDisplacementFromMod(mod);
         MemoryAddress memoryAddress;
+
         switch (rm)
         {
         case 0b000:
