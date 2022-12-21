@@ -2,6 +2,7 @@
 #include "doctest.h"
 #include "trompeloeil/doctest/trompeloeil.hpp"
 
+#include "../memory/memory.hpp"
 #include "../registers/registers.hpp"
 #include "../flags/flags.hpp"
 #include "../executor/executor.hpp"
@@ -20,10 +21,11 @@ TEST_CASE("Test AAA")
 {
     Registers registers;
     Flags_mocked flags_mocked;
-    uint8_t memory[1];
-    Executor executor(registers, flags_mocked, memory, 1);
+    Memory memory;
 
-    memory[0] = 0x37;
+    Executor executor(registers, flags_mocked, memory);
+
+    memory.setByte(0, 0, 0x37);
     registers.AX(0);
 
     SUBCASE("Test with low nibble AL>9 and flag A unset")
