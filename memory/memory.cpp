@@ -55,7 +55,7 @@ void Memory::setWord(uint16_t segment, uint16_t offset, uint16_t word)
 void Memory::load(uint16_t segment, uint16_t offset, uint8_t *data, size_t numBytes)
 {
     uint32_t address = makeAddress(segment, offset);
-    memcpy(&memory[address], data, numBytes);
+    copy_n(data, numBytes, &memory[address]);
 }
 
 void Memory::print(uint16_t segment, uint16_t offset, size_t numBytes)

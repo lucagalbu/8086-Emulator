@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ public:
     Memory()
     {
         memory = make_unique<uint8_t[]>(memorySizeByte);
-        memset(memory.get(), 0, memorySizeByte * sizeof(uint8_t));
+        fill_n(memory.get(), memorySizeByte, 0);
     }
 
     uint8_t readByte(uint16_t segment, uint16_t offset);
