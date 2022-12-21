@@ -9,6 +9,15 @@
 
 using namespace std;
 
+struct MemoryAddress
+{
+    uint16_t segment;
+    uint16_t offset;
+
+    MemoryAddress(uint16_t segment, uint16_t offset) : segment(segment), offset(offset){};
+    MemoryAddress() : segment(0), offset(0) {}
+};
+
 class Memory
 {
 public:
@@ -18,19 +27,19 @@ public:
         fill_n(memory.get(), memorySizeByte, 0);
     }
 
-    uint8_t readByte(uint16_t segment, uint16_t offset);
-    uint16_t readWord(uint16_t segment, uint16_t offset);
-    void setByte(uint16_t segment, uint16_t offset, uint8_t byte);
-    void setWord(uint16_t segment, uint16_t offset, uint16_t word);
+    uint8_t readByte(MemoryAddress address);
+    uint16_t readWord(MemoryAddress address);
+    void setByte(MemoryAddress address, uint8_t byte);
+    void setWord(MemoryAddress address, uint16_t word);
 
-    void load(uint16_t segment, uint16_t offset, uint8_t *data, size_t numBytes);
-    void print(uint16_t segment, uint16_t offset, size_t numBytes = 16);
+    void load(MemoryAddress address, uint8_t *data, size_t numBytes);
+    void print(MemoryAddress address, size_t numBytes = 16);
 
 private:
     const size_t memorySizeByte = 0x100000;
     unique_ptr<uint8_t[]> memory;
 
-    uint32_t makeAddress(uint16_t segment, uint16_t offset);
+    uint32_t getPhysicalAddress(MemoryAddress address);
 };
 
 #endif

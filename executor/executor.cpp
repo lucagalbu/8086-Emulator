@@ -111,9 +111,9 @@ void Executor::ADC_memreg_data(uint8_t opCode)
     if (w == 0)
     {
         uint8_t operand = readByteFromIP();
-        uint8_t memoryVal = memory.readByte(memoryAddress.segment, memoryAddress.offset);
+        uint8_t memoryVal = memory.readByte(memoryAddress);
         uint8_t result = memoryVal + operand + carry;
-        memory.setByte(memoryAddress.segment, memoryAddress.offset, result);
+        memory.setByte(memoryAddress, result);
     }
     else if (w == 1)
     {
@@ -128,9 +128,9 @@ void Executor::ADC_memreg_data(uint8_t opCode)
             operand = (((operand & 0b1000'0000) * 0b1111'11111) << 8) + operand;
         }
 
-        uint16_t memoryVal = memory.readWord(memoryAddress.segment, memoryAddress.offset);
+        uint16_t memoryVal = memory.readWord(memoryAddress);
         uint16_t result = memoryVal + operand + carry;
 
-        memory.setWord(memoryAddress.segment, memoryAddress.offset, result);
+        memory.setWord(memoryAddress, result);
     }
 }

@@ -9,7 +9,7 @@ TEST_CASE("Test memory is initialized to zero")
 
     for (size_t address = 0; address < 0x100000; address++)
     {
-        REQUIRE(memory.readByte(0, address) == 0);
+        REQUIRE(memory.readByte(MemoryAddress(0, address)) == 0);
     }
 }
 
@@ -23,18 +23,18 @@ TEST_CASE("Test memory set/read byte")
     uint8_t byteToSet = 0x43;
 
     // Set the byte
-    memory.setByte(segment, offset, byteToSet);
+    memory.setByte(MemoryAddress(segment, offset), byteToSet);
 
     // Check the byte has been set while all other bytes in the segment have not been set
     for (size_t i = 0; i < 0xFFFF; i++)
     {
         if (i == offset)
         {
-            REQUIRE(memory.readByte(segment, i) == byteToSet);
+            REQUIRE(memory.readByte(MemoryAddress(segment, i)) == byteToSet);
         }
         else
         {
-            REQUIRE(memory.readByte(segment, i) == 0);
+            REQUIRE(memory.readByte(MemoryAddress(segment, i)) == 0);
         }
     }
 }
@@ -48,11 +48,11 @@ TEST_CASE("Test memory read word")
     uint16_t offset = 0xD5E6;
 
     // Set the word using setByte which has been tested in a previous test
-    memory.setByte(segment, offset, 0xAB);
-    memory.setByte(segment, offset + 1, 0xCD);
+    memory.setByte(MemoryAddress(segment, offset), 0xAB);
+    memory.setByte(MemoryAddress(segment, offset + 1), 0xCD);
 
     // Check the word is read correctly
-    REQUIRE(memory.readWord(segment, offset) == 0xCDAB);
+    REQUIRE(memory.readWord(MemoryAddress(segment, offset)) == 0xCDAB);
 }
 
 TEST_CASE("Test memory write word")
@@ -64,9 +64,9 @@ TEST_CASE("Test memory write word")
     uint16_t offset = 0xD5E6;
 
     // Set the word
-    memory.setWord(segment, offset, 0xABCD);
+    memory.setWord(MemoryAddress(segment, offset), 0xABCD);
 
     // Check the word has been set corectly using readByte (which has been tested previously)
-    REQUIRE(memory.readByte(segment, offset) == 0xCD);
-    REQUIRE(memory.readByte(segment, offset + 1) == 0xAB);
+    REQUIRE(memory.readByte(MemoryAddress(segment, offset)) == 0xCD);
+    REQUIRE(memory.readByte(MemoryAddress(segment, offset + 1)) == 0xAB);
 }

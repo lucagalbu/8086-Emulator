@@ -25,7 +25,7 @@ TEST_CASE("Test AAA")
 
     Executor executor(registers, flags_mocked, memory);
 
-    memory.setByte(0, 0, 0x37);
+    memory.setByte(MemoryAddress(0, 0), 0x37);
     registers.AX(0);
 
     SUBCASE("Test with low nibble AL>9 and flag A unset")

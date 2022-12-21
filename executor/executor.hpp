@@ -13,31 +13,30 @@ class Executor
 private:
     Registers &registers;
     Flags &flags;
-
     Memory &memory;
-
-    struct MemoryAddress
-    {
-        uint16_t segment;
-        uint16_t offset;
-    };
 
     uint8_t readByteFromIP()
     {
-        uint8_t operand = memory.readByte(registers.CS(), registers.IP());
+        MemoryAddress address(registers.CS(), registers.IP());
+
+        uint8_t operand = memory.readByte(address);
         registers.IP(registers.IP() + 1);
         return operand;
     }
 
     uint16_t readWordFromIP()
     {
-        uint16_t operand = memory.readWord(registers.CS(), registers.IP());
+        MemoryAddress address(registers.CS(), registers.IP());
+
+        uint16_t operand = memory.readWord(address);
         registers.IP(registers.IP() + 2);
         return operand;
     }
 
     uint16_t getDisplacementFromMod(uint8_t mod)
     {
+        MemoryAddress address(registers.CS(), registers.IP());
+
         uint16_t displacement = 0;
         switch (mod)
         {
@@ -45,11 +44,11 @@ private:
             displacement = 0;
             break;
         case 0b01:
-            displacement = memory.readByte(registers.CS(), registers.IP());
+            displacement = memory.readByte(address);
             registers.IP(registers.IP() + 1);
             break;
         case 0x10:
-            displacement = memory.readWord(registers.CS(), registers.IP());
+            displacement = memory.readWord(address);
             registers.IP(registers.IP() + 2);
             break;
         default:
