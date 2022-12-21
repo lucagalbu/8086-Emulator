@@ -14,7 +14,7 @@ private:
     Registers &registers;
     Flags &flags;
 
-    Memory memory;
+    Memory &memory;
 
     struct MemoryAddress
     {
@@ -248,7 +248,7 @@ private:
     void ADC_memreg_data(uint8_t opCode);
 
 public:
-    Executor(Registers &registers, Flags &flags, Memory memory) : registers(registers), flags(flags), memory(memory) {}
+    Executor(Registers &registers, Flags &flags, Memory &memory) : registers(registers), flags(flags), memory(memory) {}
 
     void executeNextOperation()
     {
