@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 
 using namespace std;
 
@@ -12,13 +13,8 @@ class Memory
 public:
     Memory()
     {
-        memory = new uint8_t[memorySizeByte];
-        memset(memory, 0, memorySizeByte * sizeof(uint8_t));
-    }
-
-    ~Memory()
-    {
-        delete memory;
+        memory = make_unique<uint8_t[]>(memorySizeByte);
+        memset(memory.get(), 0, memorySizeByte * sizeof(uint8_t));
     }
 
     uint8_t readByte(uint16_t segment, uint16_t offset);
@@ -31,7 +27,7 @@ public:
 
 private:
     const size_t memorySizeByte = 0x100000;
-    uint8_t *memory;
+    unique_ptr<uint8_t[]> memory;
 
     uint32_t makeAddress(uint16_t segment, uint16_t offset);
 };
