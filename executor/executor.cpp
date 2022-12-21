@@ -1,136 +1,232 @@
 #include "executor.hpp"
 
-using namespace std;
-
-void Executor::AAA()
+uint8_t Executor::readByteFromIP()
 {
-    uint8_t lowAL = registers.AL() & 0b0000'1111;
-    if (lowAL > 0x9 || flags.isSet(Flags::A))
-    {
-        registers.AX(registers.AX() + 0x0106);
-        flags.set(Flags::A);
-        flags.set(Flags::C);
-    }
-    else
-    {
-        flags.unset(Flags::A);
-        flags.unset(Flags::C);
-    }
-    registers.AL(registers.AL() & uint8_t(0b0000'1111));
+    MemoryAddress address(registers.CS(), registers.IP());
+
+    uint8_t operand = memory.readByte(address);
+    registers.IP(registers.IP() + 1);
+    return operand;
 }
 
-void Executor::AAD(uint8_t param1)
+uint16_t Executor::readWordFromIP()
 {
-    if (param1 != 0x0A)
-    {
-        cerr << "Operation AAD recognized only with 0x0A as parameter" << endl;
-        exit(1);
-    }
-    registers.AH(registers.AH() * 0x0A);
-    registers.AL(registers.AL() + registers.AH());
-    registers.AH(0b0);
+    MemoryAddress address(registers.CS(), registers.IP());
 
-    Flags::checkParity(registers.AL()) ? flags.set(Flags::P) : flags.unset(Flags::P);
-    Flags::checkSign(registers.AL()) ? flags.set(Flags::S) : flags.unset(Flags::S);
-    registers.AL() == 0 ? flags.set(Flags::Z) : flags.unset(Flags::Z);
+    uint16_t operand = memory.readWord(address);
+    registers.IP(registers.IP() + 2);
+    return operand;
 }
 
-void Executor::AAM(uint8_t param1)
+uint16_t Executor::getDisplacementFromMod(uint8_t mod)
 {
-    if (param1 != 0x0A)
+    MemoryAddress address(registers.CS(), registers.IP());
+
+    uint16_t displacement = 0;
+    switch (mod)
     {
-        cerr << "Operation AAM recognized only with 0x0A as parameter" << endl;
-        exit(1);
-    }
-
-    uint8_t quotient = registers.AL() / 0x0A;
-    uint8_t remainder = registers.AL() % 0x0A;
-
-    registers.AH(quotient);
-    registers.AL(remainder);
-
-    Flags::checkParity(registers.AL()) ? flags.set(Flags::P) : flags.unset(Flags::P);
-    Flags::checkSign(registers.AL()) ? flags.set(Flags::S) : flags.unset(Flags::S);
-    registers.AL() == 0 ? flags.set(Flags::Z) : flags.unset(Flags::Z);
-}
-
-void Executor::AAS()
-{
-    uint8_t lowAL = registers.AL() & 0b0000'1111;
-
-    if (lowAL > 0xA || !flags.isSet(Flags::A))
-    {
-        registers.AX(registers.AX() - 0x0106);
-        flags.set(Flags::A);
-    }
-    registers.AL(registers.AL() & uint8_t(0b0000'1111));
-    flags.isSet(Flags::A) ? flags.set(Flags::C) : flags.unset(Flags::C);
-}
-
-void Executor::ADC_ac_data(uint8_t w, uint8_t param1, uint8_t param2 = 0)
-{
-    uint8_t carry = flags.isSet(Flags::C) ? 1 : 0;
-
-    if (w == 0b0)
-    {
-        registers.AL(registers.AL() + param1 + carry);
-    }
-    else if (w == 0b1)
-    {
-        uint16_t operand = (param2 << 8) + param1 + carry;
-        registers.AX(registers.AX() + operand);
-    }
-    else
-    {
-        cerr << "Operation ADC only recognized is w bit is 0 or 1" << endl;
-        exit(1);
-    }
-}
-
-void Executor::ADC_memreg_data(uint8_t opCode)
-{
-    uint8_t modRM = readByteFromIP();
-
-    uint8_t w = opCode & 0b1;
-    uint8_t s = (opCode >> 1) & 0b1;
-
-    uint8_t mod = (modRM >> 6) & 0b011;
-    uint8_t reg = (modRM >> 3) & 0b111;
-    uint8_t rm = modRM & 0b011;
-
-    uint8_t carry = flags.isSet(Flags::C) ? 1 : 0;
-
-    MemoryAddress memoryAddress = getMemAddressFromModRm(mod, rm);
-
-    if (reg != 0b010)
-    {
-        cerr << "Operation ADC between data and mem/reg requires modRM xx010xxx" << endl;
+    case 0b00:
+        displacement = 0;
+        break;
+    case 0b01:
+        displacement = memory.readByte(address);
+        registers.IP(registers.IP() + 1);
+        break;
+    case 0x10:
+        displacement = memory.readWord(address);
+        registers.IP(registers.IP() + 2);
+        break;
+    default:
+        cerr << hex;
+        cerr << "mod=" << (unsigned int)mod << " not recognized as displacement." << endl;
+        cerr << dec;
         exit(1);
     }
 
-    if (w == 0)
+    return displacement;
+}
+
+MemoryAddress Executor::getMemAddressFromModRm(uint8_t mod, uint8_t rm)
+{
+    uint16_t displacement = getDisplacementFromMod(mod);
+    MemoryAddress memoryAddress;
+
+    switch (rm)
     {
-        uint8_t operand = readByteFromIP();
-        uint8_t memoryVal = memory.readByte(memoryAddress);
-        uint8_t result = memoryVal + operand + carry;
-        memory.setByte(memoryAddress, result);
+    case 0b000:
+        memoryAddress.segment = registers.DS();
+        memoryAddress.offset = registers.BX() + registers.SI() + displacement;
+        break;
+    case 0b001:
+        memoryAddress.segment = registers.DS();
+        memoryAddress.offset = registers.BX() + registers.DI() + displacement;
+        break;
+    case 0b010:
+        memoryAddress.segment = registers.SS();
+        memoryAddress.offset = registers.BP() + registers.SI() + displacement;
+        break;
+    case 0b011:
+        memoryAddress.segment = registers.SS();
+        memoryAddress.offset = registers.BP() + registers.DI() + displacement;
+        break;
+    case 0b100:
+        memoryAddress.segment = registers.DS();
+        memoryAddress.offset = registers.SI() + displacement;
+        break;
+    case 0b101:
+        memoryAddress.segment = registers.DS();
+        memoryAddress.offset = registers.DI() + displacement;
+        break;
+    case 0b110:
+        memoryAddress.segment = registers.SS();
+        memoryAddress.offset = registers.BP() + displacement;
+        break;
+    case 0b111:
+        memoryAddress.segment = registers.DS();
+        memoryAddress.offset = registers.BX() + registers.SI() + displacement;
+        break;
+    default:
+        cerr << hex;
+        cerr << "rm=" << (unsigned int)rm << " of modRM not recognized." << endl;
+        cerr << dec;
+        exit(1);
     }
-    else if (w == 1)
+
+    return memoryAddress;
+}
+
+uint8_t Executor::getReg8(uint8_t code)
+{
+    switch (code)
     {
-        uint16_t operand;
-        if (s == 0)
-        {
-            operand = readWordFromIP();
-        }
-        else
-        {
-            operand = readByteFromIP();
-            operand = (((operand & 0b1000'0000) * 0b1111'11111) << 8) + operand;
-        }
+    case 0x0:
+        return (registers.AL());
+        break;
+    case 0x1:
+        return (registers.CL());
+        break;
+    case 0x2:
+        return (registers.DL());
+        break;
+    case 0x3:
+        return (registers.BL());
+        break;
+    case 0x4:
+        return (registers.AH());
+        break;
+    case 0x5:
+        return (registers.CH());
+        break;
+    case 0x6:
+        return (registers.DH());
+        break;
+    case 0x7:
+        return (registers.BH());
+        break;
+    default:
+        cerr << "reg code not recognized" << endl;
+        exit(1);
+    }
+}
 
-        uint16_t memoryVal = memory.readWord(memoryAddress);
-        uint16_t result = memoryVal + operand + carry;
+void Executor::setReg8(uint8_t code, uint8_t value)
+{
+    switch (code)
+    {
+    case 0x0:
+        registers.AL(value);
+        break;
+    case 0x1:
+        registers.CL(value);
+        break;
+    case 0x2:
+        registers.DL(value);
+        break;
+    case 0x3:
+        registers.BL(value);
+        break;
+    case 0x4:
+        registers.AH(value);
+        break;
+    case 0x5:
+        registers.CH(value);
+        break;
+    case 0x6:
+        registers.DH(value);
+        break;
+    case 0x7:
+        registers.BH(value);
+        break;
+    default:
+        cerr << "reg code not recognized" << endl;
+        exit(1);
+    }
+}
 
-        memory.setWord(memoryAddress, result);
+uint16_t Executor::getReg16(uint8_t code)
+{
+    switch (code)
+    {
+    case 0x0:
+        return (registers.AX());
+        break;
+    case 0x1:
+        return (registers.CX());
+        break;
+    case 0x2:
+        return (registers.DX());
+        break;
+    case 0x3:
+        return (registers.BX());
+        break;
+    case 0x4:
+        return (registers.SP());
+        break;
+    case 0x5:
+        return (registers.BP());
+        break;
+    case 0x6:
+        return (registers.SI());
+        break;
+    case 0x7:
+        return (registers.DI());
+        break;
+    default:
+        cerr << "reg code not recognized" << endl;
+        exit(1);
+    }
+}
+
+void Executor::setReg16(uint8_t code, uint16_t value)
+{
+    switch (code)
+    {
+    case 0x0:
+        registers.AX(value);
+        break;
+    case 0x1:
+        registers.CX(value);
+        break;
+    case 0x2:
+        registers.DX(value);
+        break;
+    case 0x3:
+        registers.BX(value);
+        break;
+    case 0x4:
+        registers.SP(value);
+        break;
+    case 0x5:
+        registers.BP(value);
+        break;
+    case 0x6:
+        registers.SI(value);
+        break;
+    case 0x7:
+        registers.DI(value);
+        break;
+    default:
+        cerr << "reg code not recognized" << endl;
+        exit(1);
     }
 }
