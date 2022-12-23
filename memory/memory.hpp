@@ -27,10 +27,10 @@ public:
         fill_n(memory.get(), memorySizeByte, 0);
     }
 
-    uint8_t readByte(MemoryAddress address);
-    uint16_t readWord(MemoryAddress address);
-    void setByte(MemoryAddress address, uint8_t byte);
-    void setWord(MemoryAddress address, uint16_t word);
+    virtual uint8_t readByte(MemoryAddress address);
+    virtual uint16_t readWord(MemoryAddress address);
+    virtual void setByte(MemoryAddress address, uint8_t byte);
+    virtual void setWord(MemoryAddress address, uint16_t word);
 
     void load(MemoryAddress address, uint8_t *data, size_t numBytes);
     void print(MemoryAddress address, size_t numBytes = 16);
