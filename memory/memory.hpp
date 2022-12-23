@@ -16,6 +16,11 @@ struct MemoryAddress
 
     MemoryAddress(uint16_t segment, uint16_t offset) : segment(segment), offset(offset){};
     MemoryAddress() : segment(0), offset(0) {}
+
+    bool operator==(MemoryAddress const &other) const
+    {
+        return this->segment == other.segment && this->offset == other.offset;
+    }
 };
 
 class Memory
