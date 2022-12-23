@@ -75,3 +75,28 @@ TEST_CASE("Test AAA")
         REQUIRE(registers.AX() == 0x0107);
     };
 }
+
+TEST_CASE("Test ADC")
+{
+    Registers registers;
+    Flags_mocked flags_mocked;
+    Memory_mocked memory_mocked;
+
+    Executor executor(registers, flags_mocked, memory_mocked);
+
+    SUBCASE("Test with mem/data")
+    {
+        ALLOW_CALL(memory_mocked, readWord(MemoryAddress(0xE400, 0x0040))).RETURN(0x6B90);
+        REQUIRE_CALL(memory_mocked, setWord(MemoryAddress(0xE400, 0x0040), 0x98C1));
+
+        ALLOW_CALL(memory_mocked, readByte(MemoryAddress(0, 0))).RETURN(0x81);
+        ALLOW_CALL(memory_mocked, readByte(MemoryAddress(0, 1))).RETURN(0x14);
+        ALLOW_CALL(memory_mocked, readWord(MemoryAddress(0, 2))).RETURN(0x2D31);
+
+        REQUIRE_CALL(flags_mocked, isSet(Flags::C)).RETURN(false);
+
+        registers.DS(0xE400);
+        registers.SI(0x0040);
+        executor.executeNextOperation();
+    }
+}
