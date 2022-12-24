@@ -144,3 +144,31 @@ void Executor::ADC_mem_data(uint8_t w, uint8_t s, ModRM modRm, uint8_t carry)
         memory.setWord(memoryAddress, result);
     }
 }
+
+void Executor::ADC_reg_data(uint8_t w, uint8_t s, uint8_t rm, uint8_t carry)
+{
+    if (w == 0)
+    {
+        uint8_t operand = readByteFromIP();
+        uint8_t regVal = getReg8(rm);
+        uint8_t result = regVal + operand + carry;
+        setReg8(rm, result);
+    }
+    else if (w == 1)
+    {
+        uint16_t operand;
+        if (s == 0)
+        {
+            operand = readWordFromIP();
+        }
+        else
+        {
+            operand = readByteFromIP();
+            operand = (((operand & 0b1000'0000) * 0b1111'11111) << 8) + operand;
+        }
+
+        uint16_t regVal = getReg16(rm);
+        uint16_t result = regVal + operand + carry;
+        setReg16(rm, result);
+    }
+}

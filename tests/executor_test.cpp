@@ -84,7 +84,7 @@ TEST_CASE("Test ADC")
 
     Executor executor(registers, flags_mocked, memory_mocked);
 
-    SUBCASE("Test with mem/data")
+    SUBCASE("Test with mem/data with w=1 and s=0")
     {
         ALLOW_CALL(memory_mocked, readWord(MemoryAddress(0xE400, 0x0040))).RETURN(0x6B90);
         REQUIRE_CALL(memory_mocked, setWord(MemoryAddress(0xE400, 0x0040), 0x98C1));
@@ -98,5 +98,19 @@ TEST_CASE("Test ADC")
         registers.DS(0xE400);
         registers.SI(0x0040);
         executor.executeNextOperation();
+    }
+
+    SUBCASE("Test with reg/data with w=1 and s=0")
+    {
+        ALLOW_CALL(memory_mocked, readByte(MemoryAddress(0, 0))).RETURN(0x81);
+        ALLOW_CALL(memory_mocked, readByte(MemoryAddress(0, 1))).RETURN(0xD3);
+        ALLOW_CALL(memory_mocked, readWord(MemoryAddress(0, 2))).RETURN(0x2D31);
+
+        REQUIRE_CALL(flags_mocked, isSet(Flags::C)).RETURN(false);
+
+        registers.BX(0x1234);
+        executor.executeNextOperation();
+
+        REQUIRE(registers.BX() == 0x3F65);
     }
 }
