@@ -94,19 +94,29 @@ void Executor::ADC_memreg_data(uint8_t opCode)
     uint8_t w = opCode & 0b1;
     uint8_t s = (opCode >> 1) & 0b1;
 
-    uint8_t mod = (modRM >> 6) & 0b011;
-    uint8_t reg = (modRM >> 3) & 0b111;
-    uint8_t rm = modRM & 0b011;
+    ModRM modRm = getModRmFromByte(modRM);
 
     uint8_t carry = flags.isSet(Flags::C) ? 1 : 0;
 
-    MemoryAddress memoryAddress = getMemAddressFromModRm(mod, rm);
-
-    if (reg != 0b010)
+    if (modRm.reg != 0b010)
     {
         cerr << "Operation ADC between data and mem/reg requires modRM xx010xxx" << endl;
         exit(1);
     }
+
+    if (modRm.mod == 0b11)
+    {
+        ADC_reg_data(w, s, modRm.rm, carry);
+    }
+    else
+    {
+        ADC_mem_data(w, s, modRm, carry);
+    }
+}
+
+void Executor::ADC_mem_data(uint8_t w, uint8_t s, ModRM modRm, uint8_t carry)
+{
+    MemoryAddress memoryAddress = getMemAddressFromModRm(modRm);
 
     if (w == 0)
     {
