@@ -18,6 +18,15 @@ uint16_t Executor::readWordFromIP()
     return operand;
 }
 
+ModRM Executor::getModRmFromByte(uint8_t modRm)
+{
+    uint8_t mod = (modRm >> 6) & 0b011;
+    uint8_t reg = (modRm >> 3) & 0b111;
+    uint8_t rm = modRm & 0b011;
+
+    return ModRM(mod, reg, rm);
+}
+
 uint16_t Executor::getDisplacementFromMod(uint8_t mod)
 {
     uint16_t displacement = 0;
@@ -42,12 +51,12 @@ uint16_t Executor::getDisplacementFromMod(uint8_t mod)
     return displacement;
 }
 
-MemoryAddress Executor::getMemAddressFromModRm(uint8_t mod, uint8_t rm)
+MemoryAddress Executor::getMemAddressFromModRm(ModRM modRm)
 {
-    uint16_t displacement = getDisplacementFromMod(mod);
+    uint16_t displacement = getDisplacementFromMod(modRm.mod);
     MemoryAddress memoryAddress;
 
-    switch (rm)
+    switch (modRm.rm)
     {
     case 0b000:
         memoryAddress.segment = registers.DS();
@@ -83,7 +92,7 @@ MemoryAddress Executor::getMemAddressFromModRm(uint8_t mod, uint8_t rm)
         break;
     default:
         cerr << hex;
-        cerr << "rm=" << (unsigned int)rm << " of modRM not recognized." << endl;
+        cerr << "rm=" << (unsigned int)modRm.rm << " of modRM not recognized." << endl;
         cerr << dec;
         exit(1);
     }

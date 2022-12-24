@@ -8,6 +8,16 @@
 
 using namespace std;
 
+class ModRM
+{
+public:
+    uint8_t mod;
+    uint8_t reg;
+    uint8_t rm;
+
+    ModRM(uint8_t mod, uint8_t reg, uint8_t rm) : mod(mod), reg(reg), rm(rm) {}
+};
+
 class Executor
 {
 private:
@@ -18,8 +28,9 @@ private:
     // Utilities
     uint8_t readByteFromIP();
     uint16_t readWordFromIP();
+    ModRM getModRmFromByte(uint8_t modrm);
     uint16_t getDisplacementFromMod(uint8_t mod);
-    MemoryAddress getMemAddressFromModRm(uint8_t mod, uint8_t rm);
+    MemoryAddress getMemAddressFromModRm(ModRM modRm);
     uint8_t getReg8(uint8_t code);
     void setReg8(uint8_t code, uint8_t value);
     uint16_t getReg16(uint8_t code);
@@ -33,8 +44,14 @@ private:
     void ADC_ac_data(uint8_t w, uint8_t param1, uint8_t param2);
     void ADC_memreg_data(uint8_t opCode);
 
+    // Utilities for operations
+    void ADC_mem_data(uint8_t w, uint8_t s, ModRM modRm, uint8_t carry);
+    void ADC_reg_data(uint8_t w, uint8_t s, uint8_t rm, uint8_t carry);
+
 public:
-    Executor(Registers &registers, Flags &flags, Memory &memory) : registers(registers), flags(flags), memory(memory) {}
+    Executor(Registers &registers, Flags &flags, Memory &memory) : registers(registers), flags(flags), memory(memory)
+    {
+    }
 
     void executeNextOperation()
     {
@@ -59,7 +76,10 @@ public:
         case 0x15:
             ADC_ac_data(1, readByteFromIP(), readByteFromIP());
             break;
+        case 0x80:
         case 0x81:
+        case 0x82:
+        case 0x83:
             ADC_memreg_data(opCode);
             break;
         default:
